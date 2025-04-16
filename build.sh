@@ -32,13 +32,6 @@ if [ ! -f "/etc/debian_version" ]; then
     exit 1
 fi
 
-if [ "$EUID" -eq 0 ]; then
-   echo "❌ This script should not be run using sudo or as the root user."
-   echo "   It will prompt for sudo password when needed for specific actions."
-   echo "   Please run as a normal user."
-   exit 1
-fi
-
 ORIGINAL_USER=$(whoami)
 ORIGINAL_HOME=$(getent passwd "$ORIGINAL_USER" | cut -d: -f6)
 if [ -z "$ORIGINAL_HOME" ]; then
@@ -74,11 +67,11 @@ fi # End of if [ -d "$ORIGINAL_HOME/.nvm" ] check
 echo "System Information:"
 echo "Distribution: $(grep "PRETTY_NAME" /etc/os-release | cut -d'"' -f2)"
 echo "Debian version: $(cat /etc/debian_version)"
-echo "Target Architecture: $ARCHITECTURE" 
+echo "Target Architecture: $ARCHITECTURE"
 PACKAGE_NAME="claude-desktop"
 MAINTAINER="Claude Desktop Linux Maintainers"
 DESCRIPTION="Claude Desktop for Linux"
-PROJECT_ROOT="$(pwd)" WORK_DIR="$PROJECT_ROOT/build" APP_STAGING_DIR="$WORK_DIR/electron-app" VERSION="" 
+PROJECT_ROOT="$(pwd)" WORK_DIR="$PROJECT_ROOT/build" APP_STAGING_DIR="$WORK_DIR/electron-app" VERSION=""
 echo -e "\033[1;36m--- Argument Parsing ---\033[0m"
 BUILD_FORMAT="deb"    CLEANUP_ACTION="yes"  TEST_FLAGS_MODE=false
 while [[ $# -gt 0 ]]; do
@@ -157,7 +150,7 @@ echo "Checking dependencies..."
 DEPS_TO_INSTALL=""
 COMMON_DEPS="p7zip wget wrestool icotool convert npx"
 DEB_DEPS="dpkg-deb"
-APPIMAGE_DEPS="" 
+APPIMAGE_DEPS=""
 ALL_DEPS_TO_CHECK="$COMMON_DEPS"
 if [ "$BUILD_FORMAT" = "deb" ]; then
     ALL_DEPS_TO_CHECK="$ALL_DEPS_TO_CHECK $DEB_DEPS"
@@ -200,7 +193,7 @@ fi
 
 rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR"
-mkdir -p "$APP_STAGING_DIR" 
+mkdir -p "$APP_STAGING_DIR"
 echo -e "\033[1;36m--- Electron & Asar Handling ---\033[0m"
 CHOSEN_ELECTRON_MODULE_PATH="" ASAR_EXEC=""
 
@@ -255,7 +248,7 @@ else
     exit 1
 fi
 
-cd "$PROJECT_ROOT" 
+cd "$PROJECT_ROOT"
 if [ -z "$CHOSEN_ELECTRON_MODULE_PATH" ] || [ ! -d "$CHOSEN_ELECTRON_MODULE_PATH" ]; then
      echo "❌ Critical error: Could not resolve a valid Electron module path to copy."
      exit 1
@@ -318,8 +311,8 @@ echo "✓ Icons processed and copied to $WORK_DIR"
 
 echo "⚙️ Processing app.asar..."
 cp "$CLAUDE_EXTRACT_DIR/lib/net45/resources/app.asar" "$APP_STAGING_DIR/"
-cp -a "$CLAUDE_EXTRACT_DIR/lib/net45/resources/app.asar.unpacked" "$APP_STAGING_DIR/" 
-cd "$APP_STAGING_DIR" 
+cp -a "$CLAUDE_EXTRACT_DIR/lib/net45/resources/app.asar.unpacked" "$APP_STAGING_DIR/"
+cd "$APP_STAGING_DIR"
 "$ASAR_EXEC" extract app.asar app.asar.contents
 
 echo "Creating stub native module..."
@@ -392,7 +385,7 @@ echo "Copying chosen electron installation to staging area..."
 mkdir -p "$APP_STAGING_DIR/node_modules/"
 ELECTRON_DIR_NAME=$(basename "$CHOSEN_ELECTRON_MODULE_PATH")
 echo "Copying from $CHOSEN_ELECTRON_MODULE_PATH to $APP_STAGING_DIR/node_modules/"
-cp -a "$CHOSEN_ELECTRON_MODULE_PATH" "$APP_STAGING_DIR/node_modules/" 
+cp -a "$CHOSEN_ELECTRON_MODULE_PATH" "$APP_STAGING_DIR/node_modules/"
 STAGED_ELECTRON_BIN="$APP_STAGING_DIR/node_modules/$ELECTRON_DIR_NAME/dist/electron"
 if [ -f "$STAGED_ELECTRON_BIN" ]; then
     echo "Setting executable permission on staged Electron binary: $STAGED_ELECTRON_BIN"
@@ -406,7 +399,7 @@ echo "✓ app.asar processed and staged in $APP_STAGING_DIR"
 cd "$PROJECT_ROOT"
 
 echo -e "\033[1;36m--- Call Packaging Script ---\033[0m"
-FINAL_OUTPUT_PATH="" FINAL_DESKTOP_FILE_PATH="" 
+FINAL_OUTPUT_PATH="" FINAL_DESKTOP_FILE_PATH=""
 if [ "$BUILD_FORMAT" = "deb" ]; then
     echo "📦 Calling Debian packaging script for $ARCHITECTURE..."
     chmod +x scripts/build-deb-package.sh
@@ -438,7 +431,7 @@ elif [ "$BUILD_FORMAT" = "appimage" ]; then
     APPIMAGE_FILE=$(find "$WORK_DIR" -maxdepth 1 -name "${PACKAGE_NAME}-${VERSION}-${ARCHITECTURE}.AppImage" | head -n 1)
     echo "✓ AppImage Build complete!"
     if [ -n "$APPIMAGE_FILE" ] && [ -f "$APPIMAGE_FILE" ]; then
-        FINAL_OUTPUT_PATH="./$(basename "$APPIMAGE_FILE")" 
+        FINAL_OUTPUT_PATH="./$(basename "$APPIMAGE_FILE")"
         mv "$APPIMAGE_FILE" "$FINAL_OUTPUT_PATH"
         echo "Package created at: $FINAL_OUTPUT_PATH"
 
